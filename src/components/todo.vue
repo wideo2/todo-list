@@ -8,19 +8,48 @@
   
     </div>
     <form class="form-box">
-      <input type="text" placeholder="Enter to ToDo" class="input-todo">
+      <span class="completed">Completed : {{cptCnt}}</span>
+      <input type="text" placeholder="Enter to ToDo" class="input-todo" v-model="inputTodo">
       <button  type="submit" class="btn todo" @click="addTodo">Add</button>
     </form>
+
     <ul class="todo-items">
+      
       <li class="todo-item flex-center-r" v-for="(todo,index) in list" v-bind:key="index">
-        <p class="todo-title">{{todo.title}}</p>
+      
+        <p class="todo-title" >{{todo.title}}</p>
         <div class="btn-box">
-        <button  type="button" class="btn cpt" @click="completeTodo(index)">Complete</button>
-        <button  type="button" class="btn del" @click="deleteTodo(index)">Delete</button>
-        
+        <button   class="btn cpt" @click="completeTodo(index)">Complete</button>
+        <button  type="button" class="btn del" @click="deleteTodo(index)">Delete</button> 
         </div>
       </li>
     </ul>
+
+    <div class="popup" v-if="popupOpen">
+      <div v-if="type == 'input'" class="box"> 
+         <p class="popup-font">{{msg}}</p>
+           <button class="btn todo" @click="close">Ok</button> 
+      </div>
+      <div v-else>
+          <div  v-if="type == 'del'" class="box">
+          <p class="popup-font">
+              삭제하시겠습니까?
+
+          </p>
+          <button class="close" @click="close">x</button>
+          <button @click="del" class="btn todo">Delete</button>
+          </div>
+          <div v-else class="box">
+          <p class="popup-font"> 
+              완료시 삭제됩니다.
+            
+          </p>
+            <button class="close" @click="close">x</button>
+          <button @click="cpt" class="btn todo">Delete</button>
+          </div>
+      </div>   
+    </div>
+    <p class="footer-text">Total : {{total}}<p/>
     <p class="footer-text">It is a ToDo List using KaKao API </p>
   </div>
 </template>
@@ -28,17 +57,27 @@
 <script>
 
 
-
 export default {
+
   name: 'todo',
-   
+ 
     data(){
       return {
-        id:'',
+        id:0,
         title:'',
-     
+        type: "",
+        popupOpen:false,
+        idx:"",
+        cptCnt:0,
+        inputTodo:"",
+        msg:"",
+        total:4,
       list:[
-        // {id: 1,title:"123",completed:0},
+        {id: 1,title:"123"},
+        
+        {id: 1,title:"123"},
+        {id: 1,title:"123"},
+        {id: 1,title:"123"},
         // {id: 2,title:"123",completed:0},
         // {id: 3,title:"123",completed:0}
       ]
@@ -49,26 +88,51 @@ export default {
      methods:{
       addTodo(e){
         e.preventDefault();
-        let title = document.querySelector(".input-todo").value;
-        if(title.length <= 34){
-          const result ={ title: title};
+        
+        if(this.inputTodo.length <= 34 &&this.inputTodo.length >0){
+          const result ={ id:this.id++, title: this.inputTodo};
           
           this.list.push(result);
-
-        }else{
-          alert("34자가 넘어갔습니다.");
+          this.total++;
+        }else if(this.inputTodo.length ==0){
+          this.popupOpen = true;
+          this.type= "input";
+          this.msg = "글을 입력해주세요";
+        }
+        else{
+          this.popupOpen = true;
+          this.type="input";
+          this.msg = "글이 34자 이상 넘어가면 안됌";
         }
       
 
    
       },
       deleteTodo(index){
-        
-        this.list.splice(index,1);
+        this.type="del";
+        this.popupOpen = true;
+        this.idx = index;
       },
       completeTodo(index){
-        
-        this.deleteTodo(index);
+        this.type="cpt";
+        this.popupOpen= true;
+        this.idx = index;
+        // this.list.splice(index,1);
+      },
+      del(){
+
+        this.list.splice(this.idx,1);
+        this.total--;
+        this.popupOpen =false;
+      },
+      cpt(){
+        this.list.splice(this.idx,1);
+         this.total--;
+        this.cptCnt++;
+        this.popupOpen =false;
+      },
+      close(){
+        this.popupOpen = false;
       }
     }
   }
@@ -81,7 +145,7 @@ export default {
   margin:0;
   padding: 0;
   box-sizing: border-box;
-  
+  outline: none;
 }
 *.fcous{
   outline: none;
@@ -108,7 +172,10 @@ ul,li{
   align-items: center;
   flex-direction: row;
 }
-
+.completed{
+  color: #fff;
+  font-weight: bold;
+}
 .logo{
   position: relative;
   margin-top: 20px;
@@ -146,8 +213,11 @@ ul,li{
 
   background-color: rgb(81, 94, 170);
   border-radius: 5px;
-  max-height: 390px;
- 
+  max-height: 350px;
+
+  display: flex;
+  
+  flex-direction: column;
   overflow: auto;
 }
 .todo-items::-webkit-scrollbar{
@@ -162,12 +232,13 @@ ul,li{
   border-radius: 10px;
 }
 .todo-item{
+    
   width: 400px;
   max-width: 400px;
   height: 60px;
   border-radius: 3px;
   margin: 16px;
-  box-shadow: 4px 4px rgb(191, 201, 248);
+  box-shadow: 5px 5px rgb(171, 171, 247);
   background-color: rgb(255, 255, 255);
 }
 .todo-title{
@@ -184,23 +255,83 @@ ul,li{
   font-weight: bold;
   border-radius: 6px;
 }
+.btn:hover{
+  border:solid rgba(255, 255, 255, 0.815);
+}
 .todo{
   background-color: rgb(116, 125, 240);
   font-size: 15px;
   
 }
+
 .del{
   background-color: rgb(228, 128, 128);
+  margin-top: 3px;
+
+}
+.del:hover{
+  border: solid rgb(250, 76, 76);
 
 }
 .cpt{
   background-color: rgb(97, 211, 135);
+}
+.cpt:hover{
+  border:solid rgb(27, 151, 68);
+ 
 }
 .btn-box{
   width: 78px;
   text-align: center;
   margin-right: 10px;
 }
+
+.popup{
+
+  width: 250px;
+  height: 100px;
+  position: absolute;
+  top:37%;
+  border: 1px solid rgb(138, 113, 252);
+  border-radius: 5px;
+  overflow: hidden;
+  background-color: #fff;
+}
+.popup > div{
+  height: 100%;
+}
+.popup-font{
+  color: rgb(120, 104, 209);
+  font-weight: bold;
+}
+.box{ 
+  position: relative;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+.box > .todo{
+  margin-top: 15px;
+}
+.close{
+  width: 30px;
+  padding-bottom: 4px;
+  line-height: 20px;
+  font-size: 20px;
+  border-radius: 2px;
+  color: #fff;
+  border: solid rgb(138, 113, 252);
+  background-color: rgb(138, 113, 252);
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+.close:hover{
+  color: rgb(7, 7, 7);
+}
+
 .footer-text{
   margin-top: 20px;
   font-weight: bold;
